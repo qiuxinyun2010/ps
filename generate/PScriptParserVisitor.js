@@ -1,6 +1,8 @@
 // Generated from PScriptParser.g4 by ANTLR 4.13.1
 // jshint ignore: start
 import antlr4 from "antlr4";
+import PScriptParser from "./PScriptParser.js";
+import * as PScriptType from "./PScriptType.js";
 
 // This class defines a complete generic visitor for a parse tree produced by PScriptParser.
 
@@ -126,12 +128,8 @@ export default class PScriptParserVisitor extends antlr4.tree.ParseTreeVisitor {
 
   // Visit a parse tree produced by PScriptParser#variableDeclaration.
   visitVariableDeclaration(ctx) {
-    const assignable = ctx.assignable();
-    const singleExpression = ctx.singleExpression();
-    const s1 = assignable.accept(this);
-    const s2 = singleExpression.accept(this);
-    this.variables[s1] = s2;
-    return this.visitChildren(ctx);
+    const v = this.visitChildren(ctx);
+    this.variables[v[0]] = v[2];
   }
 
   // Visit a parse tree produced by PScriptParser#emptyStatement_.
@@ -326,22 +324,31 @@ export default class PScriptParserVisitor extends antlr4.tree.ParseTreeVisitor {
 
   // Visit a parse tree produced by PScriptParser#arrayLiteral.
   visitArrayLiteral(ctx) {
-    return this.visitChildren(ctx);
+    const v = this.visitChildren(ctx);
+    return v[1];
   }
 
   // Visit a parse tree produced by PScriptParser#elementList.
   visitElementList(ctx) {
-    return this.visitChildren(ctx);
+    let ret = [];
+    for (const c of ctx.children) {
+      if (c.ruleIndex == PScriptParser.RULE_arrayElement) {
+        ret.push(c.accept(this));
+      }
+    }
+    return ret;
   }
 
   // Visit a parse tree produced by PScriptParser#arrayElement.
   visitArrayElement(ctx) {
-    return this.visitChildren(ctx);
+    const v = this.visitChildren(ctx);
+    return v[0];
   }
 
   // Visit a parse tree produced by PScriptParser#PropertyExpressionAssignment.
   visitPropertyExpressionAssignment(ctx) {
-    return this.visitChildren(ctx);
+    const v = this.visitChildren(ctx);
+    return v;
   }
 
   // Visit a parse tree produced by PScriptParser#ComputedPropertyExpressionAssignment.
@@ -371,7 +378,8 @@ export default class PScriptParserVisitor extends antlr4.tree.ParseTreeVisitor {
 
   // Visit a parse tree produced by PScriptParser#propertyName.
   visitPropertyName(ctx) {
-    return this.visitChildren(ctx);
+    const v = this.visitChildren(ctx);
+    return v[0];
   }
 
   // Visit a parse tree produced by PScriptParser#arguments.
@@ -386,7 +394,8 @@ export default class PScriptParserVisitor extends antlr4.tree.ParseTreeVisitor {
 
   // Visit a parse tree produced by PScriptParser#expressionSequence.
   visitExpressionSequence(ctx) {
-    return this.visitChildren(ctx);
+    const v = this.visitChildren(ctx);
+    return v;
   }
 
   // Visit a parse tree produced by PScriptParser#TemplateStringExpression.
@@ -416,7 +425,12 @@ export default class PScriptParserVisitor extends antlr4.tree.ParseTreeVisitor {
 
   // Visit a parse tree produced by PScriptParser#ObjectLiteralExpression.
   visitObjectLiteralExpression(ctx) {
-    return this.visitChildren(ctx);
+    const v = this.visitChildren(ctx)[0];
+    const ret = {};
+    for (let i = 0; i < v.length; i++) {
+      ret[v[i][0]] = v[i][2];
+    }
+    return ret;
   }
 
   // Visit a parse tree produced by PScriptParser#MetaExpression.
@@ -476,11 +490,8 @@ export default class PScriptParserVisitor extends antlr4.tree.ParseTreeVisitor {
 
   // Visit a parse tree produced by PScriptParser#AssignmentExpression.
   visitAssignmentExpression(ctx) {
-    const ret = this.visitChildren(ctx);
-    for (let i = 0; i < ret[0].length; i++) {
-      this.variables[ret[0][i]] = ret[2][i];
-    }
-    return ret;
+    const v = this.visitChildren(ctx);
+    this.variables[v[0]] = v[2];
   }
 
   // Visit a parse tree produced by PScriptParser#PostDecreaseExpression.
@@ -530,7 +541,28 @@ export default class PScriptParserVisitor extends antlr4.tree.ParseTreeVisitor {
 
   // Visit a parse tree produced by PScriptParser#MultiplicativeExpression.
   visitMultiplicativeExpression(ctx) {
-    return this.visitChildren(ctx);
+    const v = this.visitChildren(ctx);
+    const v0 = v[0];
+    const v2 = v[2];
+    const c1 = ctx.children[1];
+    const op = c1.getSymbol();
+    let ret = 0;
+    switch (op.type) {
+      case PScriptParser.Multiply: {
+        ret = v0 * v2;
+        break;
+      }
+      case PScriptParser.Divide: {
+        ret = v0 / v2;
+        break;
+      }
+      case PScriptParser.Modulus: {
+        ret = v0 % v2;
+        break;
+      }
+    }
+    // const op = ctx.children[]
+    return ret;
   }
 
   // Visit a parse tree produced by PScriptParser#BitShiftExpression.
@@ -540,7 +572,22 @@ export default class PScriptParserVisitor extends antlr4.tree.ParseTreeVisitor {
 
   // Visit a parse tree produced by PScriptParser#ParenthesizedExpression.
   visitParenthesizedExpression(ctx) {
-    return this.visitChildren(ctx);
+    const v = this.visitChildren(ctx)[1];
+    let ret;
+    switch (v.length) {
+      case 1:
+        ret = v[0];
+        break;
+      case 3:
+        ret = new PScriptType.Vec2(v[0], v[2]);
+        break;
+      case 5:
+        ret = new PScriptType.Vec3(v[0], v[2], v[4]);
+        break;
+      default:
+        console.warn("ExpressionSequence length: ", v.length);
+    }
+    return ret;
   }
 
   // Visit a parse tree produced by PScriptParser#AdditiveExpression.
@@ -575,12 +622,17 @@ export default class PScriptParserVisitor extends antlr4.tree.ParseTreeVisitor {
 
   // Visit a parse tree produced by PScriptParser#LiteralExpression.
   visitLiteralExpression(ctx) {
-    return this.visitChildren(ctx);
+    const v = this.visitChildren(ctx);
+    if (v.length == 1) {
+      return v[0];
+    }
+    return v;
   }
 
   // Visit a parse tree produced by PScriptParser#ArrayLiteralExpression.
   visitArrayLiteralExpression(ctx) {
-    return this.visitChildren(ctx);
+    const v = this.visitChildren(ctx);
+    return v[0];
   }
 
   // Visit a parse tree produced by PScriptParser#MemberDotExpression.
@@ -595,15 +647,19 @@ export default class PScriptParserVisitor extends antlr4.tree.ParseTreeVisitor {
 
   // Visit a parse tree produced by PScriptParser#MemberIndexExpression.
   visitMemberIndexExpression(ctx) {
-    return this.visitChildren(ctx);
+    const v = this.visitChildren(ctx);
+    const q = this.variables[v[0]];
+    const idx = v[2][0];
+    return q[idx];
   }
 
   // Visit a parse tree produced by PScriptParser#IdentifierExpression.
   visitIdentifierExpression(ctx) {
-    // const identifier = ctx.identifier();
-    // const r1 = identifier.accept(this);
-    const ret = this.visitChildren(ctx);
-    return ret;
+    const v = this.visitChildren(ctx);
+    if (v.length == 1) {
+      return v[0];
+    }
+    return v;
   }
 
   // Visit a parse tree produced by PScriptParser#BitAndExpression.
@@ -639,12 +695,17 @@ export default class PScriptParserVisitor extends antlr4.tree.ParseTreeVisitor {
   // Visit a parse tree produced by PScriptParser#assignable.
   visitAssignable(ctx) {
     return ctx.getText();
-    return this.visitChildren(ctx);
   }
 
   // Visit a parse tree produced by PScriptParser#objectLiteral.
   visitObjectLiteral(ctx) {
-    return this.visitChildren(ctx);
+    let ret = [];
+    for (const c of ctx.children) {
+      if (c.ruleIndex == PScriptParser.RULE_propertyAssignment) {
+        ret.push(c.accept(this));
+      }
+    }
+    return ret;
   }
 
   // Visit a parse tree produced by PScriptParser#AnonymousFunctionDecl.
@@ -674,7 +735,12 @@ export default class PScriptParserVisitor extends antlr4.tree.ParseTreeVisitor {
 
   // Visit a parse tree produced by PScriptParser#literal.
   visitLiteral(ctx) {
-    return this.visitChildren(ctx);
+    const v = this.visitChildren(ctx);
+    if (v.length == 1) {
+      return v[0];
+    } else {
+      return v;
+    }
   }
 
   // Visit a parse tree produced by PScriptParser#templateStringLiteral.
@@ -689,7 +755,8 @@ export default class PScriptParserVisitor extends antlr4.tree.ParseTreeVisitor {
 
   // Visit a parse tree produced by PScriptParser#numericLiteral.
   visitNumericLiteral(ctx) {
-    return Number(ctx.getText());
+    const ret = Number(ctx.getText());
+    return ret;
   }
 
   // Visit a parse tree produced by PScriptParser#bigintLiteral.
@@ -709,7 +776,8 @@ export default class PScriptParserVisitor extends antlr4.tree.ParseTreeVisitor {
 
   // Visit a parse tree produced by PScriptParser#identifierName.
   visitIdentifierName(ctx) {
-    return this.visitChildren(ctx);
+    const v = this.visitChildren(ctx);
+    return v[0];
   }
 
   // Visit a parse tree produced by PScriptParser#identifier.
